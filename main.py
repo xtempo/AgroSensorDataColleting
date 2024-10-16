@@ -5,7 +5,7 @@ import adafruit_tsl2561
 import csv
 from datetime import datetime
 import digitalio
-import random  # For simulating PKN values
+import random  # For simulating gas concentrations and pH values
 
 class SensorApp:
     def __init__(self):
@@ -13,6 +13,7 @@ class SensorApp:
         self.DHT_PIN = board.D4  # DHT sensor pin
         self.SOIL_MOISTURE_PIN = board.D17  # Soil moisture sensor pin
         self.SMOKE_SENSOR_PIN = board.D18  # Smoke sensor pin
+        self.PH_SENSOR_PIN = board.A0  # Analog pin for pH sensor (example)
 
         # Create instances for the sensors
         self.dht_sensor = adafruit_dht.DHT11(self.DHT_PIN)
@@ -31,12 +32,6 @@ class SensorApp:
         self.writer = csv.DictWriter(self.csvfile, fieldnames=self.get_fieldnames())
         self.writer.writeheader()
 
-        # Initialize max and min values
-        self.max_temperature = float('-inf')
-        self.min_temperature = float('inf')
-        self.max_humidity = float('-inf')
-        self.min_humidity = float('inf')
-
         # Initialize sensor connection status
         self.dht_connected = True
         self.lux_connected = True
@@ -53,7 +48,14 @@ class SensorApp:
             'PKN (units)',  
             'Soil Moisture (%)', 
             'Smoke Detected', 
-            'Lux (lux)'
+            'Lux (lux)',
+            'Alcohol (ppm)',
+            'Ammonia (ppm)',
+            'Benzene (ppm)',
+            'CO2 (ppm)',
+            'Smoke (ppm)',
+            'pH Level',
+            'pH Condition'
         ]
 
     def read_dht_sensor(self):
@@ -82,17 +84,21 @@ class SensorApp:
             self.smoke_connected = False  # Mark as disconnected
             return None
 
-    def read_pkn(self):
-        try:
-            pkn_value = self.get_pkn_value()  # Replace with actual sensor reading logic
-            return pkn_value
-        except Exception as e:
-            print(f"Error reading from PKN sensor: {e}")
-            return None
+    def read_gas_concentrations(self):
+        # Simulated gas concentrations for demonstration
+        alcohol_ppm = random.uniform(0, 1000)
+        ammonia_ppm = random.uniform(0, 500)
+        benzene_ppm = random.uniform(0, 300)
+        co2_ppm = random.uniform(0, 1500)
+        smoke_ppm = random.uniform(0, 600)
 
-    def get_pkn_value(self):
-        # Simulating a PKN value for demonstration
-        return random.uniform(0, 100)  # Replace with actual sensor reading logic
+        return {
+            'Alcohol': alcohol_ppm,
+            'Ammonia': ammonia_ppm,
+            'Benzene': benzene_ppm,
+            'CO2': co2_ppm,
+            'Smoke': smoke_ppm
+        }
 
     def read_lux(self):
         try:
@@ -103,24 +109,54 @@ class SensorApp:
             self.lux_connected = False  # Mark as disconnected
             return None
 
+    def read_ph_sensor(self):
+        # Simulated pH reading (replace with actual pH sensor reading logic)
+        pH_value = random.uniform(0, 14)  # pH scale typically ranges from 0 to 14
+        return pH_value
+
+    def get_ph_condition(self, ph_value):
+        if ph_value < 7:
+            return "Acidic"
+        elif ph_value == 7:
+            return "Neutral"
+        else:
+            return "Basic"
+
     def log_data(self):
         while True:
             current_time = datetime.now()
             print(f"Current time: {current_time.isoformat()}", flush=True)
 
             temperature, humidity = self.read_dht_sensor() if self.dht_connected else (None, None)
-            pkn = self.read_pkn()  # Assuming PKN is always present
             soil_moisture = self.read_soil_moisture() if self.soil_moisture_connected else None
             smoke_detected = self.read_smoke_sensor() if self.smoke_connected else None
             lux = self.read_lux() if self.lux_connected else None
+            
+            # Read gas concentrations
+            gas_levels = self.read_gas_concentrations()
+            alcohol_ppm = gas_levels['Alcohol']
+            ammonia_ppm = gas_levels['Ammonia']
+            benzene_ppm = gas_levels['Benzene']
+            co2_ppm = gas_levels['CO2']
+            smoke_ppm = gas_levels['Smoke']
+
+            # Read pH level
+            ph_value = self.read_ph_sensor()
+            ph_condition = self.get_ph_condition(ph_value)
 
             # Print the data to the console
             print(f'Temperature: {temperature if self.dht_connected else "N/A"}°C  '
                   f'Humidity: {humidity if self.dht_connected else "N/A"}%  '
-                  f'PKN: {pkn}  '
                   f'Soil Moisture: {soil_moisture if self.soil_moisture_connected else "N/A"}%  '
                   f'Smoke Detected: {"Yes" if smoke_detected else "No"}  '
-                  f'Lux: {lux if self.lux_connected else "N/A"} lux', flush=True)
+                  f'Lux: {lux if self.lux_connected else "N/A"} lux  '
+                  f'Alcohol: {alcohol_ppm:.2f} ppm  '
+                  f'Ammonia: {ammonia_ppm:.2f} ppm  '
+                  f'Benzene: {benzene_ppm:.2f} ppm  '
+                  f'CO2: {co2_ppm:.2f} ppm  '
+                  f'Smoke Gas: {smoke_ppm:.2f} ppm  '
+                  f'pH Level: {ph_value:.2f}  '
+                  f'pH Condition: {ph_condition}', flush=True)
 
             # Get the current timestamp
             timestamp = current_time.isoformat()
@@ -132,10 +168,17 @@ class SensorApp:
                 'Humidity (%)': f'{humidity}' if self.dht_connected else 'N/A',
                 'Max Temperature (°C)': f'{self.max_temperature:.2f}',
                 'Min Temperature (°C)': f'{self.min_temperature:.2f}',
-                'PKN (units)': f'{pkn}',
+                'PKN (units)': random.uniform(0, 100),  # Simulated PKN value
                 'Soil Moisture (%)': f'{soil_moisture if self.soil_moisture_connected else "N/A"}',
                 'Smoke Detected': 'Yes' if smoke_detected else 'No',
-                'Lux (lux)': f'{lux}' if self.lux_connected else 'N/A'
+                'Lux (lux)': f'{lux}' if self.lux_connected else 'N/A',
+                'Alcohol (ppm)': f'{alcohol_ppm:.2f}',
+                'Ammonia (ppm)': f'{ammonia_ppm:.2f}',
+                'Benzene (ppm)': f'{benzene_ppm:.2f}',
+                'CO2 (ppm)': f'{co2_ppm:.2f}',
+                'Smoke (ppm)': f'{smoke_ppm:.2f}',
+                'pH Level': f'{ph_value:.2f}',
+                'pH Condition': ph_condition
             })
 
             self.csvfile.flush()
