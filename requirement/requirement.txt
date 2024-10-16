@@ -1,0 +1,27 @@
+# First install the latest version of the python which is python3
+
+sudo apt install python3.10
+
+# Ensure your pip is up to date by running:
+
+pip3 install --upgrade pip
+
+# install Adafruit_DHT and RPI.GPIO 
+
+pip install Adafruit_DHT RPi.GPIO
+
+
+# for install the board in the raspberry pi
+
+pip3 install adafruit-circuitpython-board
+
+# Install Required Libraries
+# 1-> Install the adafruit-circuitpython-busdevice library:
+
+pip3 install adafruit-circuitpython-busdevice
+
+# 2-> Install the adafruit-circuitpython-tsl2561 library:
+
+pip3 install adafruit-circuitpython-tsl2561
+
+xxxxx-----------------------------------------------------------------------XXXXx
