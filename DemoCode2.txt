@@ -1,3 +1,6 @@
+# this is also a code but in this code there is some missing featues in
+# it
+
 import time
 import board
 import adafruit_dht
