@@ -1,0 +1,84 @@
+import time
+import board
+import adafruit_dht
+import csv
+from datetime import datetime
+
+# Define the pin where the sensor is connected
+DHT_PIN = board.D4  # Change this to your pin
+
+# Create a DHT11 or DHT22 sensor instance
+dht_sensor = adafruit_dht.DHT11(DHT_PIN)  # or adafruit_dht.DHT22(DHT_PIN)
+
+# Open a CSV file to write the data
+with open('sensor_data.csv', mode='w', newline='') as csvfile:
+    fieldnames = [
+        'Timestamp', 
+        '   Temperature (°C)', 
+        '   Humidity (%)', 
+        '   Max Temperature (°C)', 
+        '   Min Temperature (°C)', 
+        '   Max Humidity (%)', 
+        '   Min Humidity (%)'
+    ]
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+    # Write the header
+    writer.writeheader()
+
+    # Initialize max and min values
+    max_temperature = float('-inf')
+    min_temperature = float('inf')
+    max_humidity = float('-inf')
+    min_humidity = float('inf')
+
+    try:
+        while True:
+            try:
+                # Read the humidity and temperature from the sensor
+                temperature_c = dht_sensor.temperature
+                humidity = dht_sensor.humidity
+
+                if humidity is not None and temperature_c is not None:
+                    # Print the data to console
+                    print(f'Temperature: {temperature_c}°C  Humidity: {humidity}%')
+
+                    # Update max and min temperature
+                    if temperature_c > max_temperature:
+                        max_temperature = temperature_c
+                    if temperature_c < min_temperature:
+                        min_temperature = temperature_c
+
+                    # Update max and min humidity
+                    if humidity > max_humidity:
+                        max_humidity = humidity
+                    if humidity < min_humidity:
+                        min_humidity = humidity
+
+                    # Get the current timestamp
+                    timestamp = datetime.now().isoformat()
+
+                    # Write the data to the CSV file
+                    writer.writerow({
+                                'Timestamp': timestamp,
+                                '   Temperature (°C)': f' {temperature_c} ',
+                                '   Humidity (%)': f' {humidity} ',
+                                '   Max Temperature (°C)': f' {max_temperature} ',
+                                '   Min Temperature (°C)': f' {min_temperature} ',
+                                '   Max Humidity (%)': f' {max_humidity} ',
+                                '   Min Humidity (%)': f' {min_humidity} '
+                            })
+
+                    # Optionally flush the writer to ensure data is written immediately
+                    csvfile.flush()
+
+                else:
+                    print('Failed to read data from the sensor.')
+
+            except Exception as e:
+                print(f'Error reading from DHT sensor: {e}')
+                
+            time.sleep(2)  # Wait before the next reading
+
+    except KeyboardInterrupt:
+        print("Exiting the program.")
