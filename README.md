@@ -19,7 +19,7 @@
 # If you are using main.py then you have chech 
 # Ensure I2C is Enabled
 
-#Make sure that I2C is enabled on your Raspberry Pi:
+# Make sure that I2C is enabled on your Raspberry Pi:
 
    1. Run sudo raspi-config.
    2. Navigate to Interfacing Options > I2C and enable it.
